@@ -1,0 +1,66 @@
+﻿@layout AdminLayout
+@page "/admin/resources"
+@using OurSpotKC_Blazor_Server.Components.Resources
+@using OurSpotKC_Blazor_Server.Data
+@inject OurSpotKC_Blazor_Server.Data.Services.IResourceService service
+
+<div class="row">
+    <div class="col-sm-12">
+        <h2>Resources</h2>
+    </div>
+    <div class="col-sm-12 text-right">
+        <button type="button"
+                class="btn btn-primary m-2"
+                @onclick="(() => CreateResource())">
+            Add Resource
+        </button>
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-12">
+        <ResourceList OnEditResource="EditResource" />
+        <ResourceDetail IsOpen="IsOpen"
+                        OnToggleModal="ToggleModal"
+                        ResourceObject="resourceObject"
+                        OnSubmitResource="SubmitResource" />
+    </div>
+</div>
+
+
+@code {
+
+    public Resource resourceObject = new Resource();
+
+    public bool IsOpen = false;
+
+    private void InitializeResourceObject()
+    {
+        resourceObject = new Resource();
+    }
+
+    private void CreateResource()
+    {
+        var resource = new Resource();
+        resourceObject = resource;
+        ToggleModal();
+    }
+
+    private async void EditResource(int resourceId)
+    {
+        var resource = await service.Get(resourceId);
+        resourceObject = resource;
+        ToggleModal();
+    }
+
+    private async void SubmitResource(Resource resource)
+    {
+        var createdResource = await service.Add(resource);
+        ToggleModal();
+    }
+
+    private void ToggleModal()
+    {
+        IsOpen = !IsOpen;
+        StateHasChanged();
+    }
+}

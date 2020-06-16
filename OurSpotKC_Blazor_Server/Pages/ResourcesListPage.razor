@@ -1,0 +1,97 @@
+﻿@page "/resources"
+@using OurSpotKC_Blazor_Server.Data
+@using OurSpotKC_Blazor_Server.Data.Services
+@inject ICategoryService categoryService
+@inject IResourceService resourceService
+
+<div class="container-fluid">
+    <h3 @onclick="ResetCategory" style="display: inline-block;"><u style="cursor:pointer;">Resources</u></h3>
+    <div>
+        @if (CategoryId > 0)
+        {
+            <div class="row">
+                <div class="col mt-1 mb-3">
+                    <input @oninput="@((val) => SearchResources(val))"
+                           class="form-control mx-auto border "
+                           style="max-width: 350px;"
+                           type="search"
+                           placeholder="Search resources here..."
+                           aria-label="Search">
+                </div>
+            </div>
+            <div class="row">
+                @foreach (var resource in SearchFilteredList.Count > 0 ? SearchFilteredList.OrderBy(x => x.Name) : FilteredList.OrderBy(x => x.Name))
+                {
+                    <div class="col col-12 col-sm-12 col-md-6 col-lg-4">
+                        <div class="card actionable" style="margin: 15px; max-width: 300px; height: 175px;">
+                            <h5 style="padding: 5px 5px 0px;">
+                                @resource.Name
+                            </h5>
+                            <div class="card-body d-flex">
+                                <img src="@resource.ImageUrl"
+                                     alt="Company Logo"
+                                     class="img-fluid align-self-center justify-content-center ml-auto mr-auto"
+                                     style="max-height: 80px; margin-top: 5px;">
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="row">
+                @foreach (var category in CategoryList.OrderBy(x => x.Name))
+                {
+                    <div class="col col-sm-12 col-md-6 col-lg-4">
+                        <div class="card actionable"
+                             style="margin:15px; max-width:350px; height: 175px;"
+                             @onclick="@(e => OnSelectCategory(e, category.Id))">
+                            <div class="card-body d-flex">
+                                <h3>@category.Name</h3>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    public int CategoryId { get; set; } = 0;
+
+    public List<Category> CategoryList { get; set; } = new List<Category>();
+
+    public List<Resource> ResourceList { get; set; } = new List<Resource>();
+
+    public List<Resource> FilteredList { get; set; } = new List<Resource>();
+
+    public List<Resource> SearchFilteredList { get; set; } = new List<Resource>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        CategoryList = await categoryService.Get();
+        ResourceList = await resourceService.Get();
+    }
+
+    private void OnSelectCategory(MouseEventArgs e, int categoryId)
+    {
+        FilteredList = ResourceList.Where(x => x.CategoryId == categoryId).OrderBy(x => x.Name).ToList();
+        CategoryId = categoryId;
+        StateHasChanged();
+    }
+
+    private void ResetCategory(MouseEventArgs e)
+    {
+        FilteredList = new List<Resource>();
+        CategoryId = 0;
+        StateHasChanged();
+    }
+
+    private void SearchResources(ChangeEventArgs e)
+    {
+        SearchFilteredList = FilteredList.Where(x => x.Name.Contains(e.Value.ToString())).ToList();
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,53 @@
+﻿@using OurSpotKC_Blazor_Server
+@using OurSpotKC_Blazor_Server.Data 
+@using OurSpotKC_Blazor_Server.Data.Services
+@inject IResourceService service
+
+@if (resourceList == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Category</th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var resource in resourceList)
+            {
+                <tr>
+                    <td>@resource.Name</td>
+                    <td>@resource.Description</td>
+                    <td>@resource.Category.Name</td>
+                    <td><input type="button" class="btn btn-primary" @onclick="(() => EditResource(resource.Id))" value="Edit" /></td>
+                    <td><input type="button" class="btn btn-danger" value="Delete" /></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    [Parameter]
+    public EventCallback<int> OnEditResource { get; set; }
+
+    public List<Resource> resourceList;
+
+    protected override async Task OnInitializedAsync()
+    {
+        resourceList = await service.Get();
+        resourceList = resourceList.OrderBy(x => x.Name).ToList();
+    }
+
+    private async void EditResource(int resourceId)
+    {
+        await OnEditResource.InvokeAsync(resourceId);
+    }
+}

@@ -1,0 +1,28 @@
+﻿@using Markdig
+
+<div class="col-12">
+    <InputTextArea class="form-control"
+                   @bind-Value="@Body"
+                   @oninput="OnValueChanged"></InputTextArea>
+</div>
+<div class="col-12">
+    @((MarkupString) Body)
+</div>
+
+@code {
+
+    [Parameter]
+    public EventCallback<string> ValueChanged { get; set; }
+
+    [Parameter]
+    public string Body { get; set; } = "";
+
+    public string Preview => Body;
+
+    private Task OnValueChanged(ChangeEventArgs e)
+    {
+        Body = e.Value.ToString();
+        StateHasChanged();
+        return ValueChanged.InvokeAsync(Body);
+    }
+}

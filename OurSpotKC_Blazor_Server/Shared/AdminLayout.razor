@@ -1,0 +1,11 @@
+﻿@layout MainLayout
+@inherits LayoutComponentBase
+
+<div class="row">
+    <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+        <AdminSideMenu />
+    </nav>
+    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+        @Body
+    </main>
+</div>

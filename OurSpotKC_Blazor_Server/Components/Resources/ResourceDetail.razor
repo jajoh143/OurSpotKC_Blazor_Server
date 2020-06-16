@@ -1,0 +1,96 @@
+﻿@using OurSpotKC_Blazor_Server
+@using OurSpotKC_Blazor_Server.Data 
+@using OurSpotKC_Blazor_Server.Data.Services
+@using OurSpotKC_Blazor_Server.Components.MarkdownEditor
+@inject IResourceService resourceService
+@inject ICategoryService categoryService
+
+<div class="modal @(IsOpen ? "show" : "hide")" tabindex="-1" role="dialog" id="resourceModal" style="display:@(IsOpen ? "block" : "none")">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Resource Detail
+                </h5>
+                <button type="button" class="close" @onclick="ToggleModal" aria-label="Close">
+                    <span aria-hidden="true">x</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <EditForm Model="@ResourceObject" OnValidSubmit="@HandleValidSubmit">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <div class="form-group">
+                        <label for="name">Name</label>
+                        <input type="hidden" @bind-value="@ResourceObject.Id" />
+                        <InputText id="name" class="form-control" @bind-Value="@ResourceObject.Name" />
+                    </div>
+                    <div class="form-group">
+                        <label for="category">Category</label>
+                        <InputSelect id="Category" class="form-control"
+                                     @bind-Value="@ResourceObject.CategoryId">
+                            <option value="0">Select</option>
+                            @foreach (var category in categories)
+                            {
+                                <option value="@category.Id">
+                                    @category.Name
+                                </option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <div class="form-group">
+                        <label>Resource Description</label>
+                        <MarkdownEditor Body="@ResourceObject.Description"
+                                           ValueChanged="@(val => ResourceObject.Description = val)" />
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <button type="button" class="btn btn-secondary" @onclick="ToggleModal">Cancel</button>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (IsOpen)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+
+@code {
+    [Parameter]
+    public Resource ResourceObject { get; set; }
+
+    [Parameter]
+    public Action OnToggleModal { get; set; }
+
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    [Parameter]
+    public EventCallback<Resource> OnSubmitResource { get; set; }
+
+    public async void SubmitResource()
+    {
+        await OnSubmitResource.InvokeAsync(this.ResourceObject);
+    }
+
+    public string MarkdownString { get; set; } = "";
+
+    List<Category> categories;
+
+    protected override async Task OnInitializedAsync()
+    {
+        categories = await categoryService.Get();
+    }
+
+    private async void HandleValidSubmit()
+    {
+        await resourceService.Add(ResourceObject);
+    }
+
+    private void ToggleModal()
+    {
+        OnToggleModal?.Invoke();
+    }
+}
